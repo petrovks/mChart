@@ -31,9 +31,7 @@ public class ServerApp {
                     out.writeUTF(msg);
                     count++;
                 }
-
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }
