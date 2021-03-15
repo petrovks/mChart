@@ -7,32 +7,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Server {
-    private final int PORT = 8189;
-
+    private int port;
     private List<ClientHandler> clients;
-    private AuthService authService;
 
-    public AuthService getAuthService() {
-        return authService;
-    }
 
-    public Server() {
-        try (ServerSocket server = new ServerSocket(PORT)) {
-            authService = new BaseAuthService();
-            authService.start();
-            clients = new ArrayList<>();
+    public Server(int port) {
+        this.port = port;
+        this.clients = new ArrayList<>();
+
+        try (ServerSocket server = new ServerSocket(port)) {
+            System.out.println("Сервер запущен на порту " + port);
             while (true) {
-                System.out.println("Сервер ожидает подключения");
+                System.out.println("Ждем нового клиента...");
                 Socket socket = server.accept();
                 System.out.println("Клиент подключился");
                 new ClientHandler(this, socket);
             }
         } catch (IOException e) {
-            System.out.println("Ошибка в работе сервера");
-        } finally {
-            if (authService != null) {
-                authService.stop();
-            }
+            e.printStackTrace();
         }
     }
 
@@ -45,7 +37,7 @@ public class Server {
         return false;
     }
 
-    public synchronized void broadcastMsg(String msg) {
+    public synchronized void broadcastMsg(String msg) throws IOException {
         for (ClientHandler o : clients) {
             o.sendMsg(msg);
         }
