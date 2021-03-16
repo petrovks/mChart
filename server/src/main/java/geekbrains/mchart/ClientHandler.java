@@ -23,7 +23,6 @@ public class ClientHandler {
         this.out = new DataOutputStream(socket.getOutputStream());
         new Thread(() -> {
             try {
-
                 while (true) {
                     String msg = in.readUTF();
                     if (msg.startsWith("/login ")) {
