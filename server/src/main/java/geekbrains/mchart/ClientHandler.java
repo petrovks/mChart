@@ -45,6 +45,10 @@ public class ClientHandler {
 
                 while (true) {
                     String msg = in.readUTF();
+                    if (msg.startsWith("/")) {
+                        cmd(msg);
+                        continue;
+                    }
                     server.broadcastMsg(name + ": " + msg);
                 }
             } catch (IOException e) {
@@ -55,8 +59,23 @@ public class ClientHandler {
         }).start();
     }
 
-    public void sendMsg(String message) throws IOException {
-        out.writeUTF(message);
+    public void sendMsg(String message) {
+        try {
+            out.writeUTF(message);
+        } catch (IOException e){
+            disconnect();
+        }
+
+    }
+
+    public void cmd(String msg) {
+        String m = msg.split("\\s")[0];
+        switch (m){
+            case "/w": server.sendPrivateMessage(this, msg.split("\\s")[1], msg.split("\\s", 3)[2]); break;//   /w Bob Hello, Bob
+            case "/stat": sendMsg("Количество сообщений отправленных через чат - " + server.getCount()); break;
+            case "/who_am_i": sendMsg("Ваш ник - " + getName()); break;
+            case "/exit": System.exit(0); break;
+        }
     }
 
     public void disconnect() {

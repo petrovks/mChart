@@ -7,9 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Server {
+    private static int count;
     private int port;
     private List<ClientHandler> clients;
 
+    public int getCount() {
+        return count;
+    }
 
     public Server(int port) {
         this.port = port;
@@ -37,9 +41,10 @@ public class Server {
         return false;
     }
 
-    public synchronized void broadcastMsg(String msg) throws IOException {
+    public synchronized void broadcastMsg(String msg) {
         for (ClientHandler o : clients) {
-            o.sendMsg(msg);
+                o.sendMsg(msg);
+                count++;
         }
     }
 
@@ -50,5 +55,19 @@ public class Server {
     public synchronized void subscribe(ClientHandler o) {
         clients.add(o);
     }
+
+    public synchronized void sendPrivateMessage(ClientHandler sender, String receiverUsername, String message) {
+        for (ClientHandler c : clients) {
+            if (c.getName().equals(receiverUsername)) {
+                c.sendMsg("От: " + sender.getName() + " Сообщение: " + message);
+                sender.sendMsg("Пользователю: " + receiverUsername + " Сообщение: " + message);
+                count++;
+                return;
+            }
+        }
+        sender.sendMsg("Невозможно отправить сообщение пользователю: " + receiverUsername + ". Такого пользователя нет в сети.");
+    }
+
+
 
 }
