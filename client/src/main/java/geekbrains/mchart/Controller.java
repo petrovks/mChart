@@ -17,7 +17,7 @@ import java.util.ResourceBundle;
 public class Controller implements Initializable {
 
     @FXML
-    TextField msgField, usernameField;
+    TextField msgField, usernameField, passwordField;
 
     @FXML
     TextArea msgArea;
@@ -88,7 +88,7 @@ public class Controller implements Initializable {
         }
 
         try {
-            out.writeUTF("/login " + usernameField.getText());
+            out.writeUTF("/login " + usernameField.getText() + " " + passwordField.getText());
         } catch (IOException e) {
             e.printStackTrace();
         }

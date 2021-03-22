@@ -20,6 +20,7 @@ public class ClientHandler {
         this.name = name;
     }
 
+
     public ClientHandler(Server server, Socket socket) throws IOException {
         this.server = server;
         this.socket = socket;
@@ -31,11 +32,11 @@ public class ClientHandler {
                 while (true) {
                     String msg = in.readUTF();
                     if (msg.startsWith("/login ")) {
+                        String[] str = msg.split("\\s",3);
+                        String usernameFromLogin = server.isUserOnline(str[1], str[2]);
 
-                        String usernameFromLogin = msg.split("\\s")[1];
-
-                        if (server.isUserOnline(usernameFromLogin)) {
-                            sendMsg("/login_failed Current nickname is already used");
+                        if (usernameFromLogin == null) {
+                            sendMsg("/login_failed Wrong login or password");
                             continue;
                         }
 
@@ -49,11 +50,10 @@ public class ClientHandler {
                 while (true) {
                     String msg = in.readUTF();
                     if (msg.startsWith("/login ")) {
-
-                        String usernameFromLogin = msg.split("\\s")[1];
-
-                        if (server.isUserOnline(usernameFromLogin)) {
-                            sendMsg("/login_failed Current nickname is already used");
+                        String[] str = msg.split("\\s",3);
+                        String usernameFromLogin = server.isUserOnline(str[1], str[2]);
+                        if (usernameFromLogin == null) {
+                            sendMsg("/login_failed Wrong login or password");
                         } else {
                             this.name = usernameFromLogin;
                             sendMsg("/login_ok " + this.name);

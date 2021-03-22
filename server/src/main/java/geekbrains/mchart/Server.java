@@ -32,13 +32,19 @@ public class Server {
         }
     }
 
-    public synchronized boolean isUserOnline(String nick) {
-        for (ClientHandler o : clients) {
+    public synchronized String isUserOnline(String nick, String password) {
+      /*  for (ClientHandler o : clients) {
             if (o.getName().equals(nick)) {
                 return true;
             }
         }
-        return false;
+        return false;*/
+        for (LogData l: LogData.values()) {
+            if(l.getLogin().toString().equals(nick) && l.getPassword().toString().equals(password)) {
+                return l.getNikName().toString();
+            }
+        }
+        return null;
     }
 
     public synchronized void broadcastMsg(String msg) {

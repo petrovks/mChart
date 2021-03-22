@@ -11,6 +11,18 @@ public enum LogData {
     private String password;
     private String nikName;
 
+    public String getLogin() {
+        return login;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getNikName() {
+        return nikName;
+    }
+
     LogData(String login, String password, String nickName) {
         this.login = login;
         this.password = password;
