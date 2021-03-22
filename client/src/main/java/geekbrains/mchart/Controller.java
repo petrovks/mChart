@@ -112,7 +112,6 @@ public class Controller implements Initializable {
                         }
                     }*/
                     while (true) {
-
                         String msg = in.readUTF();
                         if (msg.startsWith("/")) {
                             if (msg.startsWith("/login_ok ")) {
