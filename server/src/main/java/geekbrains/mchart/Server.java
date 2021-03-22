@@ -32,7 +32,7 @@ public class Server {
         }
     }
 
-    public synchronized boolean isNickBusy(String nick) {
+    public synchronized boolean isUserOnline(String nick) {
         for (ClientHandler o : clients) {
             if (o.getName().equals(nick)) {
                 return true;
@@ -48,12 +48,25 @@ public class Server {
         }
     }
 
+    public synchronized void changeName(ClientHandler o, String name){
+        String lastName = o.getName();
+        clients.remove(o);
+        o.setName(name);
+        clients.add(o);
+        broadcastMsg("Клиент " + lastName + " изменил имя на " + o.getName());
+        broadcastClientsList();
+    }
+
     public synchronized void unsubscribe(ClientHandler o) {
         clients.remove(o);
+        broadcastMsg("Клиент " + o.getName() + " вышел из чата");
+        broadcastClientsList();
     }
 
     public synchronized void subscribe(ClientHandler o) {
         clients.add(o);
+        broadcastMsg("Клиент " + o.getName() + " вошел в чат");
+        broadcastClientsList();
     }
 
     public synchronized void sendPrivateMessage(ClientHandler sender, String receiverUsername, String message) {
@@ -66,6 +79,21 @@ public class Server {
             }
         }
         sender.sendMsg("Невозможно отправить сообщение пользователю: " + receiverUsername + ". Такого пользователя нет в сети.");
+    }
+
+
+    public synchronized void broadcastClientsList() {
+        if (!clients.isEmpty()){
+            StringBuilder stringBuilder = new StringBuilder("/clients_list ");
+            for (ClientHandler c: clients) {
+                stringBuilder.append(c.getName()).append(" ");
+            }
+            stringBuilder.setLength(stringBuilder.length() - 1);
+            String clientList = stringBuilder.toString();
+            for (ClientHandler clientHandler : clients) {
+                clientHandler.sendMsg(clientList);
+            }
+        }
     }
 
 
