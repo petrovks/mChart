@@ -32,11 +32,22 @@ public class ClientHandler {
                 while (true) {
                     String msg = in.readUTF();
                     if (msg.startsWith("/login ")) {
-                        String[] str = msg.split("\\s",3);
-                        String usernameFromLogin = server.isUserOnline(str[1], str[2]);
+                        String[] str = msg.split("\\s");
+                        if (str.length != 3){
+                            sendMsg("/login_failed Введите имя пользователя и пароль");
+                            continue;
+                        }
+                        String login = str[1];
+                        String password = str[2];
+
+                        String usernameFromLogin = server.getAuthenticationProvider().getNicknameByLoginAndPassword(login, password);
 
                         if (usernameFromLogin == null) {
-                            sendMsg("/login_failed Wrong login or password");
+                            sendMsg("/login_failed Введен неправильный логин или пароль");
+                            continue;
+                        }
+                        if (server.isUserOnline(usernameFromLogin)) {
+                            sendMsg("login_failed Учетная запись уже используется");
                             continue;
                         }
 
@@ -49,18 +60,6 @@ public class ClientHandler {
 
                 while (true) {
                     String msg = in.readUTF();
-                    if (msg.startsWith("/login ")) {
-                        String[] str = msg.split("\\s",3);
-                        String usernameFromLogin = server.isUserOnline(str[1], str[2]);
-                        if (usernameFromLogin == null) {
-                            sendMsg("/login_failed Wrong login or password");
-                        } else {
-                            this.name = usernameFromLogin;
-                            sendMsg("/login_ok " + this.name);
-                            server.subscribe(this);
-                        }
-                        continue;
-                    }
                     if (msg.startsWith("/")) {
                         cmd(msg);
                         continue;
@@ -88,7 +87,11 @@ public class ClientHandler {
         String m = msg.split("\\s")[0];
         switch (m){
             case "/w":
-                server.sendPrivateMessage(this, msg.split("\\s")[1], msg.split("\\s", 3)[2]);
+                String[] tokens = msg.split("\\s", 3);
+                if (tokens.length != 3){
+                    sendMsg("Server: Введена некоректная команда");
+                }
+                server.sendPrivateMessage(this, tokens[1], tokens[2]);
                 break;//   /w Bob Hello, Bob
             case "/stat":
                 sendMsg("Количество сообщений отправленных через чат - " + server.getCount());
@@ -106,9 +109,19 @@ public class ClientHandler {
                 break;
             case "/change_nick" :
                 //System.out.println("high");
-
-                server.changeName(this, msg.split("\\s")[1]);
-                this.name = msg.split("\\s")[1];
+                String[] tok = msg.split("\\s");
+                if (tok.length != 2) {
+                    sendMsg("Server: Введена некоректная команда");
+                }
+                String newNickname = tok[1];
+                if (server.isUserOnline(newNickname)) {
+                    sendMsg("Server: Такой никнейм уже занят");
+                    return;
+                }
+                server.getAuthenticationProvider().changeNickname(name, newNickname);
+                this.name = tok[1];
+                sendMsg("Server: Вы изменили никнейм на " + newNickname);
+                server.broadcastClientsList();
                 break;
 
         }

@@ -17,7 +17,10 @@ import java.util.ResourceBundle;
 public class Controller implements Initializable {
 
     @FXML
-    TextField msgField, usernameField, passwordField;
+    TextField msgField, usernameField;
+
+    @FXML
+    PasswordField passwordField;
 
     @FXML
     TextArea msgArea;
@@ -40,25 +43,17 @@ public class Controller implements Initializable {
 
     public void setName(String name) {
         this.name = name;
-        if (name != null){
-            loginPanel.setVisible(false);
-            loginPanel.setManaged(false);
-            logoutPanel.setVisible(true);
-            logoutPanel.setManaged(true);
-            msgPanel.setVisible(true);
-            msgPanel.setManaged(true);
-            clientList.setVisible(true);
-            clientList.setManaged(true);
-        } else {
-            loginPanel.setVisible(true);
-            loginPanel.setManaged(true);
-            logoutPanel.setVisible(false);
-            logoutPanel.setManaged(false);
-            msgPanel.setVisible(false);
-            msgPanel.setManaged(false);
-            clientList.setVisible(false);
-            clientList.setManaged(false);
-        }
+        boolean nameIsNull = name == null;
+
+            loginPanel.setVisible(nameIsNull);
+            loginPanel.setManaged(nameIsNull);
+            logoutPanel.setVisible(!nameIsNull);
+            logoutPanel.setManaged(!nameIsNull);
+            msgPanel.setVisible(!nameIsNull);
+            msgPanel.setManaged(!nameIsNull);
+            clientList.setVisible(!nameIsNull);
+            clientList.setManaged(!nameIsNull);
+
     }
 
     public void sendMsg() {
@@ -71,8 +66,7 @@ public class Controller implements Initializable {
 
 
         } catch (IOException e) {
-            Alert alert =  new Alert(Alert.AlertType.ERROR, "Невозможно отправить сообщение!", ButtonType.CLOSE);
-            alert.showAndWait();
+            showErrorAlert("Невозможно отправить сообщение!");
         }
     }
 
@@ -82,8 +76,7 @@ public class Controller implements Initializable {
         }
 
         if (usernameField.getText().isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Имя пользователя не может быть пустым", ButtonType.CLOSE);
-            alert.showAndWait();
+            showErrorAlert("Имя пользователя не может быть пустым");
             return;
         }
 
@@ -142,7 +135,8 @@ public class Controller implements Initializable {
                                 msgArea.appendText("Вы вышли из чата" + "\n");
                             }
                             if (msg.equals("/exit")) {
-                                System.exit(0);
+                                break;
+                                //System.exit(0);
                             }
                             continue;
                         }
@@ -160,8 +154,7 @@ public class Controller implements Initializable {
             });
             t.start();
         } catch (IOException e) {
-           Alert alert = new Alert(Alert.AlertType.ERROR, "Невозможно подключится к серверу", ButtonType.OK);
-           alert.showAndWait();
+           showErrorAlert("Невозможно подключится к серверу");
         }
     }
 
@@ -185,7 +178,11 @@ public class Controller implements Initializable {
 
     }
 
-    public void loginAnswer () {
-
+    public void showErrorAlert (String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setContentText(message);
+        alert.setTitle("Chat error");
+        alert.setHeaderText(null);
+        alert.showAndWait();
     }
 }

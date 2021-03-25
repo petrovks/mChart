@@ -8,10 +8,11 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.PasswordField?>
 <VBox fx:controller="geekbrains.mchart.Controller" xmlns:fx="http://javafx.com/fxml" alignment="center">
     <HBox fx:id="loginPanel">
         <TextField fx:id="usernameField" HBox.hgrow="ALWAYS" promptText="Укажите свой ник" />
-        <TextField fx:id="passwordField" HBox.hgrow="ALWAYS" promptText="Пароль" />
+        <PasswordField fx:id="passwordField" HBox.hgrow="ALWAYS" promptText="Пароль" />
         <Button text="Войти" onAction="#login"/>
     </HBox>
     <HBox fx:id="logoutPanel" alignment="CENTER_RIGHT">

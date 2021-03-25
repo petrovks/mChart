@@ -10,6 +10,11 @@ public class Server {
     private static int count;
     private int port;
     private List<ClientHandler> clients;
+    private AuthenticationProvider authenticationProvider;
+
+    public AuthenticationProvider getAuthenticationProvider() {
+        return authenticationProvider;
+    }
 
     public int getCount() {
         return count;
@@ -18,7 +23,7 @@ public class Server {
     public Server(int port) {
         this.port = port;
         this.clients = new ArrayList<>();
-
+        this.authenticationProvider = new InMemoryAuthenticationProvider();
         try (ServerSocket server = new ServerSocket(port)) {
             System.out.println("Сервер запущен на порту " + port);
             while (true) {
@@ -32,19 +37,13 @@ public class Server {
         }
     }
 
-    public synchronized String isUserOnline(String nick, String password) {
-      /*  for (ClientHandler o : clients) {
+    public synchronized boolean isUserOnline(String nick) {
+        for (ClientHandler o : clients) {
             if (o.getName().equals(nick)) {
                 return true;
             }
         }
-        return false;*/
-        for (LogData l: LogData.values()) {
-            if(l.getLogin().toString().equals(nick) && l.getPassword().toString().equals(password)) {
-                return l.getNikName().toString();
-            }
-        }
-        return null;
+        return false;
     }
 
     public synchronized void broadcastMsg(String msg) {
@@ -52,15 +51,6 @@ public class Server {
                 o.sendMsg(msg);
                 count++;
         }
-    }
-
-    public synchronized void changeName(ClientHandler o, String name){
-        String lastName = o.getName();
-        clients.remove(o);
-        o.setName(name);
-        clients.add(o);
-        broadcastMsg("Клиент " + lastName + " изменил имя на " + o.getName());
-        broadcastClientsList();
     }
 
     public synchronized void unsubscribe(ClientHandler o) {
