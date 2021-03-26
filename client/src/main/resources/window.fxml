@@ -14,6 +14,7 @@
         <TextField fx:id="usernameField" HBox.hgrow="ALWAYS" promptText="Укажите свой ник" />
         <PasswordField fx:id="passwordField" HBox.hgrow="ALWAYS" promptText="Пароль" />
         <Button text="Войти" onAction="#login"/>
+        <Button text="Создать" onAction="#createNewUser"/>
     </HBox>
     <HBox fx:id="logoutPanel" alignment="CENTER_RIGHT">
         <Button text = "Выйти" onAction="#logout" />

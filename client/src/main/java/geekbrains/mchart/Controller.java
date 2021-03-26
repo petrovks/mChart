@@ -138,6 +138,7 @@ public class Controller implements Initializable {
                                 break;
                                 //System.exit(0);
                             }
+
                             continue;
                         }
                         msgArea.appendText(msg + "\n");
@@ -184,5 +185,22 @@ public class Controller implements Initializable {
         alert.setTitle("Chat error");
         alert.setHeaderText(null);
         alert.showAndWait();
+    }
+
+    public void createNewUser(){
+        if (socket == null || socket.isClosed()) {
+            connect();
+        }
+
+        if (usernameField.getText().isEmpty()) {
+            showErrorAlert("Имя пользователя не может быть пустым");
+            return;
+        }
+
+        try {
+            out.writeUTF("/create " + usernameField.getText() + " " + passwordField.getText());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

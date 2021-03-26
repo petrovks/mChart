@@ -56,10 +56,64 @@ public class ClientHandler {
                         server.subscribe(this);
                         break;
                     }
+                    if (msg.startsWith("/create ")) {
+                        String[] str = msg.split("\\s");
+                        if (str.length != 3){
+                            sendMsg("/create_failed Неверный формат команды");
+                            continue;
+                        }
+                        String login = str[1];
+                        String password = str[2];
+
+                        String usernameFromLogin = server.getAuthenticationProvider().getNicknameByLoginAndPassword(login, password);
+
+                        if (usernameFromLogin != null) {
+                            sendMsg("/create_failed Введенный логин или пароль уже существуют");
+                            continue;
+                        }
+                        server.getAuthenticationProvider().createNewUser(login, password);
+
+                        usernameFromLogin = server.getAuthenticationProvider().getNicknameByLoginAndPassword(login, password);
+
+                        if (server.isUserOnline(usernameFromLogin)) {
+                            sendMsg("create_failed Учетная запись занята");
+                            continue;
+                        }
+
+                        this.name = usernameFromLogin;
+                        sendMsg("/login_ok " + this.name);
+                        server.subscribe(this);
+                        break;
+                    }
                 }
 
                 while (true) {
                     String msg = in.readUTF();
+                    if (msg.startsWith("/login ")) {
+                        String[] str = msg.split("\\s");
+                        if (str.length != 3){
+                            sendMsg("/login_failed Введите имя пользователя и пароль");
+                            continue;
+                        }
+                        String login = str[1];
+                        String password = str[2];
+
+                        String usernameFromLogin = server.getAuthenticationProvider().getNicknameByLoginAndPassword(login, password);
+
+                        if (usernameFromLogin == null) {
+                            sendMsg("/login_failed Введен неправильный логин или пароль");
+                            continue;
+                        }
+                        if (server.isUserOnline(usernameFromLogin)) {
+                            sendMsg("login_failed Учетная запись уже используется");
+                            continue;
+                        }
+
+                        this.name = usernameFromLogin;
+                        sendMsg("/login_ok " + this.name);
+                        server.subscribe(this);
+                        continue;
+                    }
                     if (msg.startsWith("/")) {
                         cmd(msg);
                         continue;
