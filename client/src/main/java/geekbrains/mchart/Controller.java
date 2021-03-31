@@ -7,9 +7,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -35,10 +33,11 @@ public class Controller implements Initializable {
     private DataOutputStream out;
     private DataInputStream in;
     private String name;
+    private File file;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-       setName(null);
+        setName(null);
     }
 
     public void setName(String name) {
@@ -63,7 +62,7 @@ public class Controller implements Initializable {
             //socket.getOutputStream().write(msg.getBytes());
             msgField.clear();
             msgField.requestFocus();
-
+            saveDataToFile(name+".txt", msgArea.getText());
 
         } catch (IOException e) {
             showErrorAlert("Невозможно отправить сообщение!");
@@ -112,6 +111,7 @@ public class Controller implements Initializable {
                         if (msg.startsWith("/")) {
                             if (msg.startsWith("/login_ok ")) {
                                 setName(msg.split("\\s")[1]);
+                                loadDataFromFile(name + ".txt");
                                 // break;
                             }
                             if (msg.startsWith("/login_failed ")) {
@@ -203,4 +203,36 @@ public class Controller implements Initializable {
             e.printStackTrace();
         }
     }
+
+    public void loadDataFromFile(String filename) {
+        file = new File(filename);
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))){
+
+                String str;
+                while ((str = reader.readLine()) != null) {
+                    msgArea.appendText(str + "\n");
+                }
+
+
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void saveDataToFile(String filename, String message) {
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter(filename))){
+            writer.write(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
 }
