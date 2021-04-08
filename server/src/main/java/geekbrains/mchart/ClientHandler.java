@@ -4,8 +4,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
 
-public class ClientHandler {
+public class ClientHandler{
     private Server server;
     private Socket socket;
     private DataInputStream in;
@@ -21,12 +22,12 @@ public class ClientHandler {
     }
 
 
-    public ClientHandler(Server server, Socket socket) throws IOException {
+    public ClientHandler(Server server, Socket socket, ExecutorService executorService) throws IOException {
         this.server = server;
         this.socket = socket;
         this.in = new DataInputStream(socket.getInputStream());
         this.out = new DataOutputStream(socket.getOutputStream());
-        new Thread(() -> {
+        executorService.execute(() -> {
             try {
 
                 while (true) {
@@ -125,7 +126,7 @@ public class ClientHandler {
             } finally {
                 disconnect();
             }
-        }).start();
+        });
     }
 
     public void sendMsg(String message) {

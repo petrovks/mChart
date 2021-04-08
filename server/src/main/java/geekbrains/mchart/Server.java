@@ -5,6 +5,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Server {
     private static int count;
@@ -24,16 +27,22 @@ public class Server {
         this.port = port;
         this.clients = new ArrayList<>();
         this.authenticationProvider = new InMemoryAuthenticationProvider();
+        ExecutorService executorService = Executors.newCachedThreadPool();
         try (ServerSocket server = new ServerSocket(port)) {
             System.out.println("Сервер запущен на порту " + port);
+            this.authenticationProvider.connect();
             while (true) {
                 System.out.println("Ждем нового клиента...");
                 Socket socket = server.accept();
                 System.out.println("Клиент подключился");
-                new ClientHandler(this, socket);
+                new ClientHandler(this, socket, executorService);
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        finally {
+            this.authenticationProvider.disconnect();
+            executorService.shutdown();
         }
     }
 

@@ -212,13 +212,10 @@ public class Controller implements Initializable {
             e.printStackTrace();
         }
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))){
-
                 String str;
                 while ((str = reader.readLine()) != null) {
                     msgArea.appendText(str + "\n");
                 }
-
-
         }
         catch (IOException e) {
             e.printStackTrace();
