@@ -1,5 +1,8 @@
 package geekbrains.mchart;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,6 +12,8 @@ public class InMemoryAuthenticationProvider implements AuthenticationProvider{
     private static Connection connection;
     private static Statement stmt;
     private static PreparedStatement psInsert;
+    private static final Logger LOGGER = LogManager.getLogger(InMemoryAuthenticationProvider.class);
+
 /*
     CREATE TABLE users (
             id       INTEGER PRIMARY KEY AUTOINCREMENT
@@ -25,7 +30,7 @@ public class InMemoryAuthenticationProvider implements AuthenticationProvider{
             ResultSet rs = stmt.executeQuery("insert into users (nickname, password, username) values ('" + nickname + "', '" + password + "', 'empty');");
 
         } catch (SQLException s) {
-            s.printStackTrace();
+            LOGGER.throwing(s);
         }
       //  finally {
       //      disconnect();
@@ -45,7 +50,7 @@ public class InMemoryAuthenticationProvider implements AuthenticationProvider{
             ResultSet rs = stmt.executeQuery("select username from users where nickname = '" + login + "' AND password = '" + password + "';");
             return rs.getString(1);
         } catch (SQLException s) {
-            s.printStackTrace();
+            LOGGER.throwing(s);
         }
       //  finally {
          //   disconnect();
@@ -66,7 +71,7 @@ public class InMemoryAuthenticationProvider implements AuthenticationProvider{
             stmt.executeUpdate("update users set username = '" + newNickname + "' where username = '" + oldNickname + "';");
 
         } catch (SQLException s) {
-            s.printStackTrace();
+            LOGGER.throwing(s);
         }
      //   finally {
      //       disconnect();
@@ -80,7 +85,7 @@ public class InMemoryAuthenticationProvider implements AuthenticationProvider{
             connection = DriverManager.getConnection("jdbc:sqlite:chartdb.db");
             stmt = connection.createStatement();
         } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
+            LOGGER.error("Невозможно подключиться к БД");
             throw new RuntimeException("Невозможно подключиться к БД");
         }
     }
@@ -91,21 +96,28 @@ public class InMemoryAuthenticationProvider implements AuthenticationProvider{
                 stmt.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.throwing(e);
         }
         try {
             if (psInsert != null) {
                 psInsert.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.throwing(e);
         }
         if (connection != null) {
             try {
                 connection.close();
             } catch (SQLException throwables) {
-                throwables.printStackTrace();
+                LOGGER.throwing(throwables);
             }
+        }
+        try {
+            if (connection.isClosed()) {
+                LOGGER.info("Отключились от БД.");
+            }
+        } catch (SQLException throwables) {
+            LOGGER.throwing(throwables);
         }
     }
 }

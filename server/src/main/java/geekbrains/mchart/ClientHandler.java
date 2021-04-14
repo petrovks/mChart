@@ -1,5 +1,8 @@
 package geekbrains.mchart;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -12,6 +15,8 @@ public class ClientHandler{
     private DataInputStream in;
     private DataOutputStream out;
     private String name;
+
+    private static final Logger LOGGER = LogManager.getLogger(ClientHandler.class);
 
     public String getName() {
         return name;
@@ -36,6 +41,7 @@ public class ClientHandler{
                         String[] str = msg.split("\\s");
                         if (str.length != 3){
                             sendMsg("/login_failed Введите имя пользователя и пароль");
+                            LOGGER.warn("/login_failed Введите имя пользователя и пароль");
                             continue;
                         }
                         String login = str[1];
@@ -45,22 +51,26 @@ public class ClientHandler{
 
                         if (usernameFromLogin == null) {
                             sendMsg("/login_failed Введен неправильный логин или пароль");
+                            LOGGER.warn("/login_failed Введен неправильный логин или пароль");
                             continue;
                         }
                         if (server.isUserOnline(usernameFromLogin)) {
-                            sendMsg("login_failed Учетная запись уже используется");
+                            sendMsg("/login_failed Учетная запись уже используется");
+                            LOGGER.warn("/login_failed Учетная запись уже используется");
                             continue;
                         }
 
                         this.name = usernameFromLogin;
                         sendMsg("/login_ok " + this.name);
                         server.subscribe(this);
+                        LOGGER.info("/login_ok " + this.name);
                         break;
                     }
                     if (msg.startsWith("/create ")) {
                         String[] str = msg.split("\\s");
                         if (str.length != 3){
                             sendMsg("/create_failed Неверный формат команды");
+                            LOGGER.warn("/create_failed Неверный формат команды");
                             continue;
                         }
                         String login = str[1];
@@ -70,6 +80,7 @@ public class ClientHandler{
 
                         if (usernameFromLogin != null) {
                             sendMsg("/create_failed Введенный логин или пароль уже существуют");
+                            LOGGER.warn("/create_failed Введенный логин или пароль уже существуют");
                             continue;
                         }
                         server.getAuthenticationProvider().createNewUser(login, password);
@@ -77,13 +88,15 @@ public class ClientHandler{
                         usernameFromLogin = server.getAuthenticationProvider().getNicknameByLoginAndPassword(login, password);
 
                         if (server.isUserOnline(usernameFromLogin)) {
-                            sendMsg("create_failed Учетная запись занята");
+                            sendMsg("/create_failed Учетная запись занята");
+                            LOGGER.warn("/create_failed Учетная запись занята");
                             continue;
                         }
 
                         this.name = usernameFromLogin;
                         sendMsg("/login_ok " + this.name);
                         server.subscribe(this);
+                        LOGGER.info("create user " + this.name);
                         break;
                     }
                 }
@@ -94,6 +107,7 @@ public class ClientHandler{
                         String[] str = msg.split("\\s");
                         if (str.length != 3){
                             sendMsg("/login_failed Введите имя пользователя и пароль");
+                            LOGGER.warn("/login_failed Введите имя пользователя и пароль");
                             continue;
                         }
                         String login = str[1];
@@ -103,16 +117,19 @@ public class ClientHandler{
 
                         if (usernameFromLogin == null) {
                             sendMsg("/login_failed Введен неправильный логин или пароль");
+                            LOGGER.warn("/login_failed Введен неправильный логин или пароль");
                             continue;
                         }
                         if (server.isUserOnline(usernameFromLogin)) {
-                            sendMsg("login_failed Учетная запись уже используется");
+                            sendMsg("/login_failed Учетная запись уже используется");
+                            LOGGER.warn("/login_failed Учетная запись уже используется");
                             continue;
                         }
 
                         this.name = usernameFromLogin;
                         sendMsg("/login_ok " + this.name);
                         server.subscribe(this);
+                        LOGGER.info("login user " + this.name);
                         continue;
                     }
                     if (msg.startsWith("/")) {
@@ -122,7 +139,7 @@ public class ClientHandler{
                     server.broadcastMsg(name + ": " + msg);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.throwing(e);
             } finally {
                 disconnect();
             }
@@ -133,6 +150,7 @@ public class ClientHandler{
         try {
             out.writeUTF(message);
         } catch (IOException e){
+            LOGGER.error("Сообщение: \"" + message + "\" - не удалось отправить");
             disconnect();
         }
 
@@ -145,11 +163,13 @@ public class ClientHandler{
                 String[] tokens = msg.split("\\s", 3);
                 if (tokens.length != 3){
                     sendMsg("Server: Введена некоректная команда");
+                    LOGGER.warn("Server: Введена некоректная команда");
                 }
                 server.sendPrivateMessage(this, tokens[1], tokens[2]);
                 break;//   /w Bob Hello, Bob
             case "/stat":
                 sendMsg("Количество сообщений отправленных через чат - " + server.getCount());
+                LOGGER.info("Количество сообщений отправленных через чат - " + server.getCount());
                 break;
             case "/who_am_i":
                 sendMsg("Ваш ник - " + getName());
@@ -167,6 +187,7 @@ public class ClientHandler{
                 String[] tok = msg.split("\\s");
                 if (tok.length != 2) {
                     sendMsg("Server: Введена некоректная команда");
+                    LOGGER.warn("Server: Введена некоректная команда");
                 }
                 String newNickname = tok[1];
                 if (server.isUserOnline(newNickname)) {
@@ -176,6 +197,7 @@ public class ClientHandler{
                 server.getAuthenticationProvider().changeNickname(name, newNickname);
                 this.name = tok[1];
                 sendMsg("Server: Вы изменили никнейм на " + newNickname);
+                LOGGER.info("Server: Вы изменили никнейм на " + newNickname);
                 server.broadcastClientsList();
                 break;
 
@@ -188,7 +210,7 @@ public class ClientHandler{
             try {
                 socket.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.throwing(e);
             }
         }
     }
