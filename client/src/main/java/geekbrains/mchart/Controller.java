@@ -5,9 +5,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -15,7 +13,10 @@ import java.util.ResourceBundle;
 public class Controller implements Initializable {
 
     @FXML
-    TextField msgField, usernameField, passwordField;
+    TextField msgField, usernameField;
+
+    @FXML
+    PasswordField passwordField;
 
     @FXML
     TextArea msgArea;
@@ -30,33 +31,25 @@ public class Controller implements Initializable {
     private DataOutputStream out;
     private DataInputStream in;
     private String name;
+    private File file;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-       setName(null);
+        setName(null);
     }
 
     public void setName(String name) {
         this.name = name;
-        if (name != null){
-            loginPanel.setVisible(false);
-            loginPanel.setManaged(false);
-            logoutPanel.setVisible(true);
-            logoutPanel.setManaged(true);
-            msgPanel.setVisible(true);
-            msgPanel.setManaged(true);
-            clientList.setVisible(true);
-            clientList.setManaged(true);
-        } else {
-            loginPanel.setVisible(true);
-            loginPanel.setManaged(true);
-            logoutPanel.setVisible(false);
-            logoutPanel.setManaged(false);
-            msgPanel.setVisible(false);
-            msgPanel.setManaged(false);
-            clientList.setVisible(false);
-            clientList.setManaged(false);
-        }
+        boolean nameIsNull = name == null;
+
+            loginPanel.setVisible(nameIsNull);
+            loginPanel.setManaged(nameIsNull);
+            logoutPanel.setVisible(!nameIsNull);
+            logoutPanel.setManaged(!nameIsNull);
+            msgPanel.setVisible(!nameIsNull);
+            msgPanel.setManaged(!nameIsNull);
+            clientList.setVisible(!nameIsNull);
+            clientList.setManaged(!nameIsNull);
     }
 
     public void sendMsg() {
@@ -66,11 +59,10 @@ public class Controller implements Initializable {
             //socket.getOutputStream().write(msg.getBytes());
             msgField.clear();
             msgField.requestFocus();
-
+            saveDataToFile(name+".txt", msgArea.getText());
 
         } catch (IOException e) {
-            Alert alert =  new Alert(Alert.AlertType.ERROR, "Невозможно отправить сообщение!", ButtonType.CLOSE);
-            alert.showAndWait();
+            showErrorAlert("Невозможно отправить сообщение!");
         }
     }
 
@@ -80,8 +72,7 @@ public class Controller implements Initializable {
         }
 
         if (usernameField.getText().isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Имя пользователя не может быть пустым", ButtonType.CLOSE);
-            alert.showAndWait();
+            showErrorAlert("Имя пользователя не может быть пустым");
             return;
         }
 
@@ -117,6 +108,7 @@ public class Controller implements Initializable {
                         if (msg.startsWith("/")) {
                             if (msg.startsWith("/login_ok ")) {
                                 setName(msg.split("\\s")[1]);
+                                loadDataFromFile(name + ".txt");
                                 // break;
                             }
                             if (msg.startsWith("/login_failed ")) {
@@ -140,8 +132,10 @@ public class Controller implements Initializable {
                                 msgArea.appendText("Вы вышли из чата" + "\n");
                             }
                             if (msg.equals("/exit")) {
-                                System.exit(0);
+                                break;
+                                //System.exit(0);
                             }
+
                             continue;
                         }
                         msgArea.appendText(msg + "\n");
@@ -158,8 +152,7 @@ public class Controller implements Initializable {
             });
             t.start();
         } catch (IOException e) {
-           Alert alert = new Alert(Alert.AlertType.ERROR, "Невозможно подключится к серверу", ButtonType.OK);
-           alert.showAndWait();
+           showErrorAlert("Невозможно подключится к серверу");
         }
     }
 
@@ -183,7 +176,57 @@ public class Controller implements Initializable {
 
     }
 
-    public void loginAnswer () {
+    public void showErrorAlert (String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setContentText(message);
+        alert.setTitle("Chat error");
+        alert.setHeaderText(null);
+        alert.showAndWait();
+    }
+
+    public void createNewUser(){
+        if (socket == null || socket.isClosed()) {
+            connect();
+        }
+
+        if (usernameField.getText().isEmpty()) {
+            showErrorAlert("Имя пользователя не может быть пустым");
+            return;
+        }
+
+        try {
+            out.writeUTF("/create " + usernameField.getText() + " " + passwordField.getText());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadDataFromFile(String filename) {
+        file = new File(filename);
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))){
+                String str;
+                while ((str = reader.readLine()) != null) {
+                    msgArea.appendText(str + "\n");
+                }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void saveDataToFile(String filename, String message) {
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter(filename))){
+            writer.write(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
+
+
 }
