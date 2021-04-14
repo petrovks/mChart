@@ -5,8 +5,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-
-
 import java.io.*;
 import java.net.Socket;
 import java.net.URL;
@@ -52,7 +50,6 @@ public class Controller implements Initializable {
             msgPanel.setManaged(!nameIsNull);
             clientList.setVisible(!nameIsNull);
             clientList.setManaged(!nameIsNull);
-
     }
 
     public void sendMsg() {
