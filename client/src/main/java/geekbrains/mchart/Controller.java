@@ -5,12 +5,17 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.*;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
+    private static final Logger LOGGER = LogManager.getLogger(Controller.class);
 
     @FXML
     TextField msgField, usernameField;
@@ -41,7 +46,6 @@ public class Controller implements Initializable {
     public void setName(String name) {
         this.name = name;
         boolean nameIsNull = name == null;
-
             loginPanel.setVisible(nameIsNull);
             loginPanel.setManaged(nameIsNull);
             logoutPanel.setVisible(!nameIsNull);
@@ -56,11 +60,9 @@ public class Controller implements Initializable {
         try {
             String msg = msgField.getText();
             out.writeUTF(msg);
-            //socket.getOutputStream().write(msg.getBytes());
             msgField.clear();
             msgField.requestFocus();
             saveDataToFile(name+".txt", msgArea.getText());
-
         } catch (IOException e) {
             showErrorAlert("Невозможно отправить сообщение!");
         }
@@ -80,6 +82,7 @@ public class Controller implements Initializable {
             out.writeUTF("/login " + usernameField.getText() + " " + passwordField.getText());
         } catch (IOException e) {
             e.printStackTrace();
+            LOGGER.error(e.getMessage());
         }
     }
 
@@ -144,6 +147,7 @@ public class Controller implements Initializable {
 
                 } catch (IOException e) {
                     e.printStackTrace();
+                    LOGGER.error(e.getMessage());
                 }
                 finally {
                     disconnect();
@@ -164,6 +168,7 @@ public class Controller implements Initializable {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            LOGGER.error(e.getMessage());
         }
     }
 
@@ -172,11 +177,13 @@ public class Controller implements Initializable {
                 out.writeUTF("/logout " + this.name);
             } catch (IOException e) {
                 e.printStackTrace();
+                LOGGER.error(e.getMessage());
             }
 
     }
 
     public void showErrorAlert (String message) {
+        LOGGER.error(message);
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setContentText(message);
         alert.setTitle("Chat error");
@@ -198,6 +205,7 @@ public class Controller implements Initializable {
             out.writeUTF("/create " + usernameField.getText() + " " + passwordField.getText());
         } catch (IOException e) {
             e.printStackTrace();
+            LOGGER.error(e.getMessage());
         }
     }
 
@@ -207,6 +215,7 @@ public class Controller implements Initializable {
             file.createNewFile();
         } catch (IOException e) {
             e.printStackTrace();
+            LOGGER.error(e.getMessage());
         }
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))){
                 String str;
@@ -216,6 +225,7 @@ public class Controller implements Initializable {
         }
         catch (IOException e) {
             e.printStackTrace();
+            LOGGER.error(e.getMessage());
         }
     }
 
@@ -224,6 +234,7 @@ public class Controller implements Initializable {
             writer.write(message);
         } catch (IOException e) {
             e.printStackTrace();
+            LOGGER.error(e.getMessage());
         }
 
     }

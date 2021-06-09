@@ -1,5 +1,8 @@
 package geekbrains.mchart;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,6 +17,7 @@ public class Server {
     private int port;
     private List<ClientHandler> clients;
     private AuthenticationProvider authenticationProvider;
+    private static final Logger LOGGER = LogManager.getLogger(Server.class);
 
     public AuthenticationProvider getAuthenticationProvider() {
         return authenticationProvider;
@@ -29,16 +33,20 @@ public class Server {
         this.authenticationProvider = new InMemoryAuthenticationProvider();
         ExecutorService executorService = Executors.newCachedThreadPool();
         try (ServerSocket server = new ServerSocket(port)) {
-            System.out.println("Сервер запущен на порту " + port);
+            //System.out.println("Сервер запущен на порту " + port);
+            LOGGER.info("Сервер запущен на порту " + port);
             this.authenticationProvider.connect();
             while (true) {
-                System.out.println("Ждем нового клиента...");
+                //System.out.println("Ждем нового клиента...");
+                LOGGER.info("Ждем нового клиента...");
                 Socket socket = server.accept();
-                System.out.println("Клиент подключился");
+                //System.out.println("Клиент подключился");
+                LOGGER.info("Клиент подключился");
                 new ClientHandler(this, socket, executorService);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+          //  e.printStackTrace();
+            LOGGER.throwing(e);
         }
         finally {
             this.authenticationProvider.disconnect();
@@ -49,6 +57,7 @@ public class Server {
     public synchronized boolean isUserOnline(String nick) {
         for (ClientHandler o : clients) {
             if (o.getName().equals(nick)) {
+                LOGGER.warn("Пользователь с именем \"" + nick + "\" существует");
                 return true;
             }
         }
@@ -65,6 +74,7 @@ public class Server {
     public synchronized void unsubscribe(ClientHandler o) {
         clients.remove(o);
         broadcastMsg("Клиент " + o.getName() + " вышел из чата");
+        LOGGER.info("Клиент " + o.getName() + " вышел из чата");
         broadcastClientsList();
     }
 
